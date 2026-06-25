@@ -1,0 +1,18 @@
+{
+  "id": "human-senior",
+  "label": "Senior Business Analyst",
+  "isHuman": true,
+  "humanExperience": "senior",
+  "model": {
+    "provider": "human",
+    "name": "human"
+  },
+  "prompt": {
+    "version": "human",
+    "technique": [],
+    "language": "pl"
+  },
+  "skills": [],
+  "tools": ["confluence-search"],
+  "notes": "Senior BA, 7 lat doświadczenia, zna domenę. Czas: ~45 min per case."
+}

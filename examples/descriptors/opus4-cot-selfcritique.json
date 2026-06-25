@@ -1,0 +1,19 @@
+{
+  "id": "opus4-cot-v2",
+  "label": "Claude Opus 4 — CoT + self-critique",
+  "model": {
+    "provider": "anthropic",
+    "name": "claude-opus-4-8",
+    "temperature": 0.2,
+    "thinking": true
+  },
+  "prompt": {
+    "version": "v2",
+    "technique": ["chain-of-thought", "structured-output", "self-critique"],
+    "language": "pl",
+    "maxRefinementRounds": 2
+  },
+  "skills": ["self-critique", "invest-checker"],
+  "tools": [],
+  "notes": "Extended thinking + 2 rundy self-critique. Droższy ale powinien być lepszy."
+}

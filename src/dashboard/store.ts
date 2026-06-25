@@ -2,11 +2,14 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from "path";
 import { BAOutput } from "../types.js";
 import { HardMetrics, computeHardMetrics } from "../metrics/hard-metrics.js";
+import { SkillMetrics, computeSkillMetrics } from "../metrics/skill-metrics.js";
+import { AgentDescriptor, descriptorLabel, descriptorFingerprint } from "../agent-descriptor.js";
 import { JudgeResult } from "../types.js";
 
+// Backwards-compatible legacy type
 export interface AgentVersion {
-  id: string;          // e.g. "v1", "gpt4o-20250601", "human-analyst"
-  model: string;       // e.g. "claude-opus-4-8", "human"
+  id: string;
+  model: string;
   promptVersion?: string;
   notes?: string;
 }
@@ -15,12 +18,14 @@ export interface StoredRun {
   runId: string;
   runAt: string;
   version: AgentVersion;
+  descriptor?: AgentDescriptor;    // pełny descriptor jeśli podany
   caseName: string;
   caseId: string;
   input: string;
   inputFormat: string;
   output: BAOutput;
   hardMetrics: HardMetrics;
+  skillMetrics?: SkillMetrics;     // obecne jeśli descriptor podany
   judgeResult?: JudgeResult;
 }
 
@@ -50,22 +55,43 @@ export function addRun(
   caseId: string,
   caseName: string,
   output: BAOutput,
-  judgeResult?: JudgeResult
+  judgeResult?: JudgeResult,
+  descriptor?: AgentDescriptor
 ): StoredRun {
+  const hardMetrics = computeHardMetrics(output);
   const run: StoredRun = {
     runId: `${version.id}-${caseId}-${Date.now()}`,
     runAt: new Date().toISOString(),
     version,
+    descriptor,
     caseId,
     caseName,
     input: output.rawInput.content,
     inputFormat: output.rawInput.format,
     output,
-    hardMetrics: computeHardMetrics(output),
+    hardMetrics,
+    skillMetrics: descriptor ? computeSkillMetrics(descriptor, output, hardMetrics) : undefined,
     judgeResult,
   };
   store.runs.push(run);
   return run;
+}
+
+export function addRunWithDescriptor(
+  store: RunStore,
+  descriptor: AgentDescriptor,
+  caseId: string,
+  caseName: string,
+  output: BAOutput,
+  judgeResult?: JudgeResult
+): StoredRun {
+  const version: AgentVersion = {
+    id: descriptor.id,
+    model: descriptor.model.name,
+    promptVersion: descriptor.prompt.version,
+    notes: descriptor.notes,
+  };
+  return addRun(store, version, caseId, caseName, output, judgeResult, descriptor);
 }
 
 export function getVersions(store: RunStore): string[] {

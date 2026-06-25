@@ -1,0 +1,26 @@
+{
+  "id": "opus4-full-v3",
+  "label": "Claude Opus 4 — pełny pipeline",
+  "model": {
+    "provider": "anthropic",
+    "name": "claude-opus-4-8",
+    "temperature": 0.1,
+    "thinking": true
+  },
+  "prompt": {
+    "version": "v3",
+    "technique": ["chain-of-thought", "few-shot", "structured-output", "reflection"],
+    "language": "pl",
+    "fewShotCount": 3,
+    "maxRefinementRounds": 3
+  },
+  "skills": [
+    "invest-checker",
+    "ac-generator",
+    "edge-case-hunter",
+    "persona-expander",
+    "self-critique"
+  ],
+  "tools": ["confluence-search", "glossary-lookup"],
+  "notes": "Pełny pipeline z subagentami. Benchmark tego jak daleko można dojść z jakością."
+}

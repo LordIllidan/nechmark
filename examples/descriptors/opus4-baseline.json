@@ -1,0 +1,17 @@
+{
+  "id": "opus4-baseline",
+  "label": "Claude Opus 4 — baseline",
+  "model": {
+    "provider": "anthropic",
+    "name": "claude-opus-4-8",
+    "temperature": 0.3
+  },
+  "prompt": {
+    "version": "v1",
+    "technique": ["zero-shot", "structured-output"],
+    "language": "pl"
+  },
+  "skills": [],
+  "tools": [],
+  "notes": "Bazowa konfiguracja bez żadnych ulepszeń"
+}
