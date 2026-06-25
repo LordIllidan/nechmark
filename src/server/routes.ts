@@ -1,15 +1,15 @@
 import { Router, Request, Response } from "express";
 import { randomUUID } from "crypto";
-import { BAOutput } from "../types.js";
-import { AgentDescriptor } from "../agent-descriptor.js";
-import { computeHardMetrics } from "../metrics/hard-metrics.js";
-import { computeSkillMetrics } from "../metrics/skill-metrics.js";
+import { BAOutput } from "../types";
+import { AgentDescriptor } from "../agent-descriptor";
+import { computeHardMetrics } from "../metrics/hard-metrics";
+import { computeSkillMetrics } from "../metrics/skill-metrics";
 import {
   createExperiment, listExperiments, getExperiment, deleteExperiment,
   upsertDescriptor, listDescriptors,
   insertRun, listRuns, getRun, deleteRun, getRunStats,
   RunRow,
-} from "./db.js";
+} from "./db";
 
 export const router = Router();
 

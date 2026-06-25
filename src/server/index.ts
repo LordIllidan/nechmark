@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { join } from "path";
-import { router } from "./routes.js";
+import { router } from "./routes";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
@@ -14,7 +14,7 @@ app.use(express.static(join(process.cwd(), "public")));
 app.use("/api", router);
 
 // SPA fallback
-app.get("*", (_req, res) => {
+app.get("/*path", (_req, res) => {
   res.sendFile(join(process.cwd(), "public", "index.html"));
 });
 
