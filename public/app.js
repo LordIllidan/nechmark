@@ -404,11 +404,6 @@ function renderDescriptors() {
   document.getElementById("add-desc-btn").onclick = () => {
     document.getElementById("desc-form").classList.remove("hidden");
   };
-  document.getElementById("save-desc-btn").onclick = saveDescriptor;
-  document.getElementById("cancel-desc-btn").onclick = () => {
-    document.getElementById("desc-form").classList.add("hidden");
-    document.getElementById("desc-json-input").value = "";
-  };
 }
 
 function getChecked(containerId) {
@@ -505,6 +500,11 @@ async function saveDescriptor() {
 async function setupDescriptors() {
   document.getElementById("add-desc-btn").onclick = () => {
     document.getElementById("desc-form").classList.remove("hidden");
+  };
+  document.getElementById("save-desc-btn").onclick = saveDescriptor;
+  document.getElementById("cancel-desc-btn").onclick = () => {
+    document.getElementById("desc-form").classList.add("hidden");
+    resetDescriptorForm();
   };
 }
 
