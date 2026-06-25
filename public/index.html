@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nechmark</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="logo">⚡ nechmark</div>
+    <nav>
+      <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+      <button class="nav-btn" data-view="upload">Upload Results</button>
+      <button class="nav-btn" data-view="descriptors">Descriptors</button>
+      <button class="nav-btn" data-view="runs">All Runs</button>
+    </nav>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Experiments</div>
+      <div id="exp-list"></div>
+      <button id="new-exp-btn" class="btn-outline">+ New experiment</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main id="main">
+    <!-- Dashboard view -->
+    <div id="view-dashboard" class="view active">
+      <div class="view-header">
+        <h1 id="dashboard-title">Select an experiment</h1>
+        <div id="dashboard-actions" class="hidden">
+          <button class="btn-danger btn-sm" id="delete-exp-btn">Delete</button>
+        </div>
+      </div>
+      <div id="exp-stats" class="stats-row hidden"></div>
+      <div id="dashboard-empty" class="empty-state">
+        <div class="empty-icon">📊</div>
+        <p>Select or create an experiment, then upload results to see metrics.</p>
+      </div>
+      <div id="dashboard-content" class="hidden">
+        <div class="section-title">Overall Scores by Version</div>
+        <div id="score-cards" class="score-cards"></div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Radar — all metrics</div>
+            <canvas id="radar-chart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Bar — metric breakdown</div>
+            <canvas id="bar-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="section-title">Metric Details</div>
+        <div id="metrics-table-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Upload view -->
+    <div id="view-upload" class="view">
+      <div class="view-header"><h1>Upload Results</h1></div>
+      <div class="upload-form">
+        <div class="form-group">
+          <label>Experiment</label>
+          <select id="upload-exp-select"><option value="">— select —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Descriptor (optional)</label>
+          <select id="upload-desc-select"><option value="">— none —</option></select>
+          <div class="form-hint">Or paste descriptor JSON below to create new</div>
+          <textarea id="upload-desc-json" placeholder='{"id":"my-agent","model":{"provider":"anthropic","name":"claude-opus-4-8"},"prompt":{"version":"v1","technique":["zero-shot"]},"skills":[],"tools":[]}'></textarea>
+        </div>
+        <div class="form-group">
+          <label>Case ID</label>
+          <input type="text" id="upload-case-id" placeholder="RC-001">
+        </div>
+        <div class="form-group">
+          <label>Case Name</label>
+          <input type="text" id="upload-case-name" placeholder="Login feature">
+        </div>
+        <div class="form-group">
+          <label>BA Output JSON</label>
+          <div id="drop-zone" class="drop-zone">
+            <div class="drop-icon">📄</div>
+            <p>Drag & drop BAOutput JSON file here<br>or <label class="link" for="file-input">browse</label></p>
+            <input type="file" id="file-input" accept=".json" style="display:none">
+          </div>
+          <div id="file-preview" class="file-preview hidden"></div>
+          <div class="form-hint">Or paste JSON directly:</div>
+          <textarea id="upload-output-json" placeholder='{"userStories":[...],"rawInput":{"format":"free_text","content":"..."}}' rows="6"></textarea>
+        </div>
+        <button id="upload-btn" class="btn-primary">Upload & Compute Metrics</button>
+        <div id="upload-status"></div>
+      </div>
+    </div>
+
+    <!-- Descriptors view -->
+    <div id="view-descriptors" class="view">
+      <div class="view-header">
+        <h1>Agent Descriptors</h1>
+        <button id="add-desc-btn" class="btn-primary btn-sm">+ Add Descriptor</button>
+      </div>
+      <div id="desc-list"></div>
+      <div id="desc-form" class="descriptor-form hidden">
+        <div class="form-group">
+          <label>Descriptor JSON</label>
+          <textarea id="desc-json-input" rows="20" placeholder='{"id":"","label":"","model":{"provider":"anthropic","name":"claude-opus-4-8","temperature":0.3},"prompt":{"version":"v1","technique":["zero-shot"]},"skills":[],"tools":[]}'></textarea>
+        </div>
+        <div class="form-row">
+          <button id="save-desc-btn" class="btn-primary">Save</button>
+          <button id="cancel-desc-btn" class="btn-outline">Cancel</button>
+        </div>
+        <div id="desc-status"></div>
+      </div>
+    </div>
+
+    <!-- All Runs view -->
+    <div id="view-runs" class="view">
+      <div class="view-header"><h1>All Runs</h1></div>
+      <div id="runs-table-wrap"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="modal-cancel">Cancel</button>
+      <button class="btn-primary" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
