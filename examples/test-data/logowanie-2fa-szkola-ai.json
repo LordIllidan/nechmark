@@ -1,0 +1,290 @@
+{
+  "epicTitle": "Logowanie z 2FA do systemu szkolnego dla pracowników",
+  "generatedAt": "2026-06-25T14:00:00.000Z",
+  "modelUsed": "claude-opus-4-8",
+  "rawInput": {
+    "format": "free_text",
+    "content": "Pracownicy szkoły (nauczyciele, sekretariat, dyrekcja, obsługa) muszą logować się do systemu szkolnego (dziennik elektroniczny, kadry, biblioteka). System musi obsługiwać dwuskładnikowe uwierzytelnienie (2FA) przez SMS lub aplikację TOTP (np. Google Authenticator). Po 5 nieudanych próbach logowania konto powinno być blokowane na 15 minut. Administratorzy mogą odblokować konto ręcznie. Pracownicy mogą zapamiętać urządzenie na 30 dni. Hasła muszą być zmieniane co 90 dni. Sesja wygasa po 8 godzinach nieaktywności lub o 23:00."
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Logowanie podstawowe z hasłem",
+      "asA": "pracownik szkoły",
+      "iWant": "zalogować się do systemu podając login i hasło",
+      "soThat": "mam dostęp do przypisanych mi modułów systemu szkolnego",
+      "priority": "must",
+      "storyPoints": 3,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "description": "Given pracownik jest na stronie logowania When wpisuje poprawny login i hasło i klika 'Zaloguj' Then system weryfikuje dane w ciągu 2 sekund i przechodzi do ekranu 2FA",
+          "type": "functional"
+        },
+        {
+          "id": "AC-002",
+          "description": "Given pracownik wpisuje błędne hasło When klika 'Zaloguj' Then system wyświetla komunikat 'Nieprawidłowy login lub hasło' bez wskazywania który element jest błędny oraz inkrementuje licznik błędnych prób",
+          "type": "functional"
+        },
+        {
+          "id": "AC-003",
+          "description": "Given pracownik wykonał 5 kolejnych błędnych prób logowania When próbuje zalogować się po raz szósty Then konto zostaje zablokowane na 15 minut i wyświetlany jest komunikat 'Konto zablokowane. Spróbuj ponownie o [godzina] lub skontaktuj się z administratorem'",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-004",
+          "description": "Given konto jest zablokowane When mija 15 minut Then blokada jest automatycznie zdejmowana bez konieczności kontaktu z administratorem",
+          "type": "functional"
+        },
+        {
+          "id": "AC-005",
+          "description": "Given pole hasła When pracownik wpisuje znaki Then są one maskowane (wyświetlane jako kropki) z opcją odkrycia hasła przez ikonę oka",
+          "type": "functional"
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Weryfikacja 2FA przez SMS",
+      "asA": "pracownik szkoły z włączonym 2FA przez SMS",
+      "iWant": "otrzymać jednorazowy kod SMS i potwierdzić nim tożsamość",
+      "soThat": "moje konto jest chronione nawet jeśli ktoś pozna moje hasło",
+      "priority": "must",
+      "storyPoints": 5,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-006",
+          "description": "Given pracownik pomyślnie podał hasło When system przechodzi do kroku 2FA Then w ciągu 30 sekund na numer telefonu przypisany do konta wysyłany jest SMS z 6-cyfrowym kodem jednorazowym",
+          "type": "functional"
+        },
+        {
+          "id": "AC-007",
+          "description": "Given pracownik otrzymał kod SMS When wpisuje go w formularzu i klika 'Potwierdź' w ciągu 5 minut od wysłania Then system loguje pracownika i przekierowuje do panelu głównego",
+          "type": "functional"
+        },
+        {
+          "id": "AC-008",
+          "description": "Given pracownik wpisuje kod SMS When kod jest starszy niż 5 minut Then system odrzuca kod z komunikatem 'Kod wygasł. Wyślij nowy kod.' i umożliwia ponowne wysłanie SMS",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-009",
+          "description": "Given pracownik wpisuje nieprawidłowy kod SMS When klika 'Potwierdź' Then system wyświetla 'Nieprawidłowy kod' i pozwala na maksymalnie 3 kolejne próby zanim zablokuje ten etap na 5 minut",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-010",
+          "description": "Given pracownik nie otrzymał SMS When klika 'Wyślij ponownie' Then system wysyła nowy kod (poprzedni przestaje być ważny) z minimalnym odstępem 60 sekund między kolejnymi wysłaniami",
+          "type": "functional"
+        },
+        {
+          "id": "AC-011",
+          "description": "Given pracownik jest w kroku 2FA When numer telefonu zaczyna się od numeru zagranicznego Then system wyświetla ostrzeżenie o możliwych opóźnieniach doręczenia",
+          "type": "non_functional"
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Weryfikacja 2FA przez aplikację TOTP",
+      "asA": "pracownik szkoły z włączonym 2FA przez aplikację TOTP",
+      "iWant": "potwierdzić logowanie kodem z aplikacji Google Authenticator lub Microsoft Authenticator",
+      "soThat": "mogę się zalogować nawet bez zasięgu telefonu",
+      "priority": "must",
+      "storyPoints": 5,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-012",
+          "description": "Given pracownik pomyślnie podał hasło When system przechodzi do kroku 2FA (TOTP) Then wyświetlany jest formularz z polem na 6-cyfrowy kod z informacją 'Wpisz kod z aplikacji uwierzytelniającej'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-013",
+          "description": "Given pracownik wpisuje aktualny kod TOTP (ważny w oknie czasowym ±30 sekund) When klika 'Weryfikuj' Then system akceptuje kod i loguje pracownika",
+          "type": "functional"
+        },
+        {
+          "id": "AC-014",
+          "description": "Given pracownik wpisuje kod TOTP starszy niż 60 sekund When klika 'Weryfikuj' Then system odrzuca kod z komunikatem 'Kod nieważny lub wygasły. Sprawdź synchronizację czasu w aplikacji.'",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-015",
+          "description": "Given pracownik trzykrotnie wpisał błędny kod TOTP Then krok 2FA jest blokowany na 5 minut i wyświetlany jest stosowny komunikat",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Zapamiętanie zaufanego urządzenia",
+      "asA": "pracownik szkoły logujący się z własnego komputera lub telefonu",
+      "iWant": "oznaczyć urządzenie jako zaufane na 30 dni",
+      "soThat": "nie muszę wpisywać kodu 2FA przy każdym logowaniu z tego samego urządzenia",
+      "priority": "should",
+      "storyPoints": 3,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-016",
+          "description": "Given pracownik pomyślnie przeszedł weryfikację 2FA When na ekranie 2FA jest zaznaczona opcja 'Zapamiętaj to urządzenie na 30 dni' Then system zapisuje zaufany token urządzenia w przeglądarce (httpOnly cookie) ważny 30 dni",
+          "type": "functional"
+        },
+        {
+          "id": "AC-017",
+          "description": "Given pracownik loguje się z zapamiętanego urządzenia w ciągu 30 dni When poda poprawne hasło Then system pomija krok 2FA i od razu loguje pracownika",
+          "type": "functional"
+        },
+        {
+          "id": "AC-018",
+          "description": "Given minęło 30 dni od zapamiętania urządzenia When pracownik próbuje się zalogować Then system wymaga ponownie pełnej weryfikacji 2FA i informuje 'Zaufanie urządzenia wygasło'",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-019",
+          "description": "Given pracownik chce usunąć zaufane urządzenia When wchodzi w ustawienia konta i klika 'Usuń zaufane urządzenia' Then wszystkie zapisane tokeny urządzeń są natychmiast unieważniane",
+          "type": "functional"
+        },
+        {
+          "id": "AC-020",
+          "description": "Given administrator wykryje nieautoryzowane logowanie When unieważnia sesje użytkownika Then wszystkie zaufane urządzenia tego użytkownika są automatycznie odwoływane",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Wymuszenie zmiany hasła co 90 dni",
+      "asA": "pracownik szkoły",
+      "iWant": "być powiadamiany o zbliżającym się wygaśnięciu hasła i móc je zmienić",
+      "soThat": "moje hasło jest regularnie rotowane zgodnie z polityką bezpieczeństwa szkoły",
+      "priority": "must",
+      "storyPoints": 3,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-021",
+          "description": "Given pracownik zalogował się po raz pierwszy When mija 80 dni od ostatniej zmiany hasła Then przy każdym logowaniu wyświetlany jest baner 'Twoje hasło wygaśnie za [X] dni. Zmień hasło.'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-022",
+          "description": "Given hasło pracownika wygasło (minęło 90 dni) When pracownik próbuje się zalogować Then po podaniu hasła system wymusza zmianę hasła przed udzieleniem dostępu do systemu",
+          "type": "functional"
+        },
+        {
+          "id": "AC-023",
+          "description": "Given pracownik zmienia hasło When nowe hasło ma mniej niż 12 znaków lub nie zawiera co najmniej jednej wielkiej litery, cyfry i znaku specjalnego Then system odrzuca hasło z komunikatem o wymaganiach",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-024",
+          "description": "Given pracownik ustawia nowe hasło When nowe hasło jest identyczne z jednym z ostatnich 5 haseł Then system odrzuca je z komunikatem 'Nie możesz użyć jednego z ostatnich 5 haseł'",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-025",
+          "description": "Given pracownik pomyślnie zmienił hasło Then system wysyła powiadomienie e-mail na adres służbowy z informacją o zmianie hasła i godziną zmiany",
+          "type": "non_functional"
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Automatyczne wylogowanie po nieaktywności",
+      "asA": "pracownik szkoły zalogowany do systemu",
+      "iWant": "być automatycznie wylogowywany po 8 godzinach nieaktywności lub o 23:00",
+      "soThat": "moje dane są chronione gdy zapomnę się wylogować",
+      "priority": "must",
+      "storyPoints": 2,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-026",
+          "description": "Given pracownik jest zalogowany When mija 8 godzin od ostatniej akcji w systemie Then sesja wygasa, pracownik jest przekierowywany na stronę logowania z komunikatem 'Sesja wygasła z powodu nieaktywności'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-027",
+          "description": "Given pracownik jest zalogowany When zegar systemowy osiągnie 23:00 Then sesja jest kończona niezależnie od aktywności z komunikatem 'Sesja zakończona zgodnie z polityką szkoły'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-028",
+          "description": "Given do wygaśnięcia sesji pozostaje 5 minut When pracownik wykonuje jakąkolwiek akcję Then wyświetlany jest modal z odliczaniem 'Sesja wygaśnie za 5:00 minut. Chcesz przedłużyć?' z przyciskami 'Tak, przedłuż' i 'Wyloguj'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-029",
+          "description": "Given pracownik ma otwarte dane w formularzu When sesja wygasa Then system zapisuje draft formularza w localStorage i po ponownym zalogowaniu pyta 'Czy przywrócić niezapisane zmiany?'",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Odblokowanie konta przez administratora",
+      "asA": "administrator systemu szkolnego",
+      "iWant": "odblokować zablokowane konto pracownika przed upływem 15 minut",
+      "soThat": "pracownik może wrócić do pracy bez zbędnego oczekiwania",
+      "priority": "should",
+      "storyPoints": 2,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-030",
+          "description": "Given konto pracownika jest zablokowane When administrator wchodzi w panel zarządzania użytkownikami i klika 'Odblokuj konto' przy danym pracowniku Then konto jest natychmiast odblokowywane i licznik błędnych prób resetuje się do 0",
+          "type": "functional"
+        },
+        {
+          "id": "AC-031",
+          "description": "Given administrator odblokował konto When akcja zostanie wykonana Then w dzienniku zdarzeń zapisywane jest: kto odblokował, kiedy, i czyje konto",
+          "type": "non_functional"
+        },
+        {
+          "id": "AC-032",
+          "description": "Given administrator odblokował konto When pracownik zostaje powiadomiony Then na adres e-mail pracownika wysyłana jest wiadomość 'Twoje konto zostało odblokowane przez administratora'",
+          "type": "functional"
+        },
+        {
+          "id": "AC-033",
+          "description": "Given pracownik zwykły (nie-administrator) When próbuje uzyskać dostęp do panelu zarządzania kontami Then system zwraca błąd 403 i rejestruje próbę nieautoryzowanego dostępu",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Konfiguracja metody 2FA przez pracownika",
+      "asA": "pracownik szkoły",
+      "iWant": "wybrać i skonfigurować preferowaną metodę weryfikacji 2FA (SMS lub TOTP)",
+      "soThat": "mogę używać metody 2FA wygodnej dla mojego stylu pracy",
+      "priority": "should",
+      "storyPoints": 5,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-034",
+          "description": "Given zalogowany pracownik wchodzi w Ustawienia > Bezpieczeństwo When klika 'Konfiguruj 2FA' Then system wyświetla wybór metod: SMS (jeśli numer telefonu jest w systemie) lub Aplikacja TOTP",
+          "type": "functional"
+        },
+        {
+          "id": "AC-035",
+          "description": "Given pracownik wybiera TOTP When klika 'Skonfiguruj aplikację' Then system generuje unikalny sekret i wyświetla kod QR możliwy do zeskanowania przez Google Authenticator lub Microsoft Authenticator",
+          "type": "functional"
+        },
+        {
+          "id": "AC-036",
+          "description": "Given pracownik zeskanował kod QR When wpisuje wygenerowany kod z aplikacji i klika 'Potwierdź' Then system weryfikuje poprawność konfiguracji i aktywuje TOTP jako metodę 2FA",
+          "type": "functional"
+        },
+        {
+          "id": "AC-037",
+          "description": "Given pracownik aktywował TOTP When system potwierdzi konfigurację Then generowane są jednorazowe kody zapasowe (backup codes) — 10 kodów po 16 znaków — możliwe do pobrania jako PDF",
+          "type": "functional"
+        },
+        {
+          "id": "AC-038",
+          "description": "Given pracownik chce zmienić metodę 2FA z SMS na TOTP When inicjuje zmianę Then musi najpierw zweryfikować tożsamość aktualną metodą 2FA przed możliwością zmiany",
+          "type": "edge_case"
+        }
+      ]
+    }
+  ],
+  "notes": "Wymagania dotyczą systemu szkolnego obsługującego pracowników wszystkich szczebli. Kody backup powinny być przechowywane w postaci zahaszowanej (bcrypt). Numer telefonu dla SMS jest zarządzany przez administratora, nie przez pracownika (by zapobiec atakom socjotechnicznym). Sesja 23:00 dotyczy strefy czasowej Europe/Warsaw."
+}

@@ -1,0 +1,158 @@
+{
+  "epicTitle": "Logowanie 2FA system szkolny",
+  "generatedAt": "2026-06-25T14:30:00.000Z",
+  "modelUsed": "human",
+  "rawInput": {
+    "format": "free_text",
+    "content": "Pracownicy szkoły (nauczyciele, sekretariat, dyrekcja, obsługa) muszą logować się do systemu szkolnego (dziennik elektroniczny, kadry, biblioteka). System musi obsługiwać dwuskładnikowe uwierzytelnienie (2FA) przez SMS lub aplikację TOTP (np. Google Authenticator). Po 5 nieudanych próbach logowania konto powinno być blokowane na 15 minut. Administratorzy mogą odblokować konto ręcznie. Pracownicy mogą zapamiętać urządzenie na 30 dni. Hasła muszą być zmieniane co 90 dni. Sesja wygasa po 8 godzinach nieaktywności lub o 23:00."
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Logowanie do systemu",
+      "asA": "użytkownik",
+      "iWant": "zalogować się do systemu szkolnego",
+      "soThat": "mam dostęp do systemu",
+      "priority": "must",
+      "storyPoints": 3,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "description": "Użytkownik może wpisać login i hasło i zalogować się do systemu",
+          "type": "functional"
+        },
+        {
+          "id": "AC-002",
+          "description": "Przy błędnym haśle system powinien szybko wyświetlić odpowiedni komunikat błędu",
+          "type": "functional"
+        },
+        {
+          "id": "AC-003",
+          "description": "Po kilku nieudanych próbach konto powinno być zablokowane przez odpowiedni czas",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Weryfikacja SMS",
+      "asA": "pracownik",
+      "iWant": "dostać SMS z kodem i potwierdzić logowanie",
+      "soThat": "konto jest bezpieczne",
+      "priority": "must",
+      "storyPoints": 5,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-004",
+          "description": "System wysyła SMS z kodem do użytkownika po poprawnym wpisaniu hasła",
+          "type": "functional"
+        },
+        {
+          "id": "AC-005",
+          "description": "Użytkownik wpisuje kod z SMS i jest logowany do systemu",
+          "type": "functional"
+        },
+        {
+          "id": "AC-006",
+          "description": "Kod SMS powinien wygasać po pewnym czasie",
+          "type": "edge_case"
+        },
+        {
+          "id": "AC-007",
+          "description": "Użytkownik może poprosić o ponowne wysłanie SMS jeśli nie otrzymał kodu",
+          "type": "functional"
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Weryfikacja przez aplikację TOTP",
+      "asA": "pracownik",
+      "iWant": "używać Google Authenticator do logowania",
+      "soThat": "mogę się logować bez SMS",
+      "priority": "must",
+      "storyPoints": 5,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-008",
+          "description": "System akceptuje kody z aplikacji Google Authenticator lub Microsoft Authenticator",
+          "type": "functional"
+        },
+        {
+          "id": "AC-009",
+          "description": "Błędny kod TOTP powinien być odrzucony z odpowiednim komunikatem",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Zapamiętanie urządzenia",
+      "asA": "pracownik",
+      "iWant": "żeby system zapamiętał moje urządzenie",
+      "soThat": "nie muszę wpisywać 2FA za każdym razem",
+      "priority": "should",
+      "storyPoints": 2,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-010",
+          "description": "Pracownik może oznaczyć urządzenie jako zaufane podczas logowania",
+          "type": "functional"
+        },
+        {
+          "id": "AC-011",
+          "description": "Zaufane urządzenie powinno działać przez odpowiedni czas bez potrzeby ponownej weryfikacji 2FA",
+          "type": "functional"
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Zmiana hasła",
+      "asA": "pracownik",
+      "iWant": "zmieniać hasło gdy system tego wymaga",
+      "soThat": "moje konto jest bezpieczne",
+      "priority": "must",
+      "storyPoints": 2,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-012",
+          "description": "System powinien przypominać użytkownikowi o zmianie hasła gdy się zbliża termin",
+          "type": "functional"
+        },
+        {
+          "id": "AC-013",
+          "description": "Nowe hasło musi spełniać odpowiednie wymagania bezpieczeństwa",
+          "type": "functional"
+        },
+        {
+          "id": "AC-014",
+          "description": "Nie można użyć poprzedniego hasła",
+          "type": "edge_case"
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Automatyczne wylogowanie",
+      "asA": "pracownik",
+      "iWant": "być wylogowany po dłuższej nieaktywności",
+      "soThat": "moje dane są bezpieczne",
+      "priority": "should",
+      "storyPoints": 1,
+      "acceptanceCriteria": [
+        {
+          "id": "AC-015",
+          "description": "System automatycznie wylogowuje użytkownika po długim czasie nieaktywności",
+          "type": "functional"
+        },
+        {
+          "id": "AC-016",
+          "description": "Użytkownik jest informowany przed wylogowaniem",
+          "type": "functional"
+        }
+      ]
+    }
+  ],
+  "notes": "Wersja napisana ręcznie przez analityka w czasie ok. 25 minut."
+}

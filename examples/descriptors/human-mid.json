@@ -1,0 +1,18 @@
+{
+  "id": "human-mid",
+  "label": "Mid Business Analyst (human)",
+  "isHuman": true,
+  "humanExperience": "mid",
+  "model": {
+    "provider": "human",
+    "name": "human"
+  },
+  "prompt": {
+    "version": "human",
+    "technique": [],
+    "language": "pl"
+  },
+  "skills": [],
+  "tools": [],
+  "notes": "Mid-level BA, ~3 lata doświadczenia. Czas pracy: 25 min na przypadek testowy logowanie-2fa."
+}
