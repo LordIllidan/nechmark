@@ -48,8 +48,39 @@ router.get("/descriptors", (_req, res) => {
 });
 
 router.post("/descriptors", (req: Request, res: Response) => {
-  const descriptor = req.body as AgentDescriptor;
-  if (!descriptor.id || !descriptor.model) { res.status(400).json({ error: "id and model required" }); return; }
+  const raw = req.body as Record<string, unknown>;
+  const errors: string[] = [];
+
+  if (!raw["id"] || typeof raw["id"] !== "string") errors.push("id (string) required");
+  if (!raw["model"] || typeof raw["model"] !== "object") errors.push("model (object) required — e.g. {\"provider\":\"anthropic\",\"name\":\"claude-opus-4-8\"}");
+  if (!raw["prompt"] || typeof raw["prompt"] !== "object") errors.push("prompt (object) required — e.g. {\"version\":\"v1\",\"technique\":[\"zero-shot\"]}");
+  if (!Array.isArray(raw["skills"])) errors.push("skills (array) required — use [] if none");
+  if (!Array.isArray(raw["tools"])) errors.push("tools (array) required — use [] if none");
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      error: "Invalid descriptor",
+      fields: errors,
+      example: {
+        id: "my-agent-v1",
+        label: "My Agent v1",
+        model: { provider: "anthropic", name: "claude-opus-4-8", temperature: 0.3 },
+        prompt: { version: "v1", technique: ["zero-shot"], language: "pl" },
+        skills: [],
+        tools: [],
+        notes: "Optional notes"
+      }
+    });
+    return;
+  }
+
+  // Fill defaults for optional fields
+  const descriptor = {
+    skills: [],
+    tools: [],
+    ...raw,
+  } as unknown as AgentDescriptor;
+
   const row = upsertDescriptor(descriptor as unknown as Record<string, unknown>);
   res.status(201).json({ ...row, descriptor });
 });
@@ -97,13 +128,16 @@ router.post("/experiments/:experimentId/runs", (req: Request, res: Response) => 
   }
 
   const hardMetrics = computeHardMetrics(body.output);
-  const skillMetrics = body.descriptor
-    ? computeSkillMetrics(body.descriptor, body.output, hardMetrics)
+
+  // Validate descriptor minimally before using it
+  const desc = body.descriptor;
+  const validDescriptor = desc && typeof desc === "object" && desc.id && desc.model && typeof desc.model === "object";
+  const skillMetrics = validDescriptor
+    ? computeSkillMetrics(desc, body.output, hardMetrics)
     : null;
 
-  // Upsert descriptor if provided inline
-  if (body.descriptor) {
-    upsertDescriptor(body.descriptor as unknown as Record<string, unknown>);
+  if (validDescriptor) {
+    upsertDescriptor(desc as unknown as Record<string, unknown>);
   }
 
   const runId = randomUUID();
@@ -115,8 +149,8 @@ router.post("/experiments/:experimentId/runs", (req: Request, res: Response) => 
     case_name: body.caseName ?? body.caseId,
     input_format: body.output.rawInput.format,
     input_content: body.output.rawInput.content,
-    descriptor_id: body.descriptor?.id ?? body.descriptorId ?? null as string | null,
-    descriptor_json: body.descriptor ? JSON.stringify(body.descriptor) : null,
+    descriptor_id: (validDescriptor ? desc.id : body.descriptorId) ?? null as string | null,
+    descriptor_json: validDescriptor ? JSON.stringify(desc) : null,
     output_json: JSON.stringify(body.output),
     hard_metrics_json: JSON.stringify(hardMetrics),
     skill_metrics_json: skillMetrics ? JSON.stringify(skillMetrics) : null,

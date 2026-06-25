@@ -107,16 +107,129 @@
         <button id="add-desc-btn" class="btn-primary btn-sm">+ Add Descriptor</button>
       </div>
       <div id="desc-list"></div>
+
       <div id="desc-form" class="descriptor-form hidden">
-        <div class="form-group">
-          <label>Descriptor JSON</label>
-          <textarea id="desc-json-input" rows="20" placeholder='{"id":"","label":"","model":{"provider":"anthropic","name":"claude-opus-4-8","temperature":0.3},"prompt":{"version":"v1","technique":["zero-shot"]},"skills":[],"tools":[]}'></textarea>
+        <h2 style="margin-bottom:20px;font-size:1rem;color:var(--accent)">New Descriptor</h2>
+
+        <div class="form-section-label">Identity</div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>ID <span class="required">*</span></label>
+            <input type="text" id="df-id" placeholder="opus4-cot-v2">
+          </div>
+          <div class="form-group">
+            <label>Label (display name)</label>
+            <input type="text" id="df-label" placeholder="Claude Opus 4 — CoT v2">
+          </div>
         </div>
-        <div class="form-row">
-          <button id="save-desc-btn" class="btn-primary">Save</button>
+
+        <div class="form-section-label">Model</div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Provider <span class="required">*</span></label>
+            <select id="df-provider">
+              <option value="anthropic">Anthropic</option>
+              <option value="openai">OpenAI</option>
+              <option value="google">Google</option>
+              <option value="mistral">Mistral</option>
+              <option value="ollama">Ollama</option>
+              <option value="human">Human</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Model name <span class="required">*</span></label>
+            <input type="text" id="df-model-name" placeholder="claude-opus-4-8">
+          </div>
+          <div class="form-group">
+            <label>Temperature</label>
+            <input type="number" id="df-temperature" placeholder="0.3" min="0" max="1" step="0.05">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group checkbox-group">
+            <label><input type="checkbox" id="df-thinking"> Extended thinking / reasoning mode</label>
+          </div>
+          <div class="form-group">
+            <label>Is human analyst?</label>
+            <select id="df-is-human">
+              <option value="">No</option>
+              <option value="junior">Human — Junior</option>
+              <option value="mid">Human — Mid</option>
+              <option value="senior">Human — Senior</option>
+              <option value="principal">Human — Principal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-label">Prompt</div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Prompt version <span class="required">*</span></label>
+            <input type="text" id="df-prompt-version" placeholder="v1">
+          </div>
+          <div class="form-group">
+            <label>Language</label>
+            <select id="df-language">
+              <option value="pl">Polish (pl)</option>
+              <option value="en">English (en)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Prompt techniques</label>
+          <div class="checkbox-grid" id="df-techniques">
+            <label><input type="checkbox" value="zero-shot"> zero-shot</label>
+            <label><input type="checkbox" value="few-shot"> few-shot</label>
+            <label><input type="checkbox" value="chain-of-thought"> chain-of-thought</label>
+            <label><input type="checkbox" value="self-critique"> self-critique</label>
+            <label><input type="checkbox" value="structured-output"> structured-output</label>
+            <label><input type="checkbox" value="reflection"> reflection</label>
+            <label><input type="checkbox" value="role-play"> role-play</label>
+            <label><input type="checkbox" value="tree-of-thought"> tree-of-thought</label>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Few-shot examples count</label>
+            <input type="number" id="df-fewshot" placeholder="0" min="0" max="20">
+          </div>
+          <div class="form-group">
+            <label>Refinement rounds</label>
+            <input type="number" id="df-refinements" placeholder="0" min="0" max="10">
+          </div>
+        </div>
+
+        <div class="form-section-label">Skills</div>
+        <div class="checkbox-grid" id="df-skills">
+          <label><input type="checkbox" value="invest-checker"> invest-checker</label>
+          <label><input type="checkbox" value="ac-generator"> ac-generator</label>
+          <label><input type="checkbox" value="edge-case-hunter"> edge-case-hunter</label>
+          <label><input type="checkbox" value="persona-expander"> persona-expander</label>
+          <label><input type="checkbox" value="self-critique"> self-critique</label>
+          <label><input type="checkbox" value="rag-requirements"> rag-requirements</label>
+          <label><input type="checkbox" value="domain-glossary"> domain-glossary</label>
+        </div>
+
+        <div class="form-section-label">Tools</div>
+        <div class="checkbox-grid" id="df-tools">
+          <label><input type="checkbox" value="jira-fetch"> jira-fetch</label>
+          <label><input type="checkbox" value="confluence-search"> confluence-search</label>
+          <label><input type="checkbox" value="linear-fetch"> linear-fetch</label>
+          <label><input type="checkbox" value="web-search"> web-search</label>
+          <label><input type="checkbox" value="glossary-lookup"> glossary-lookup</label>
+          <label><input type="checkbox" value="code-scan"> code-scan</label>
+        </div>
+
+        <div class="form-group" style="margin-top:16px">
+          <label>Notes</label>
+          <textarea id="df-notes" rows="2" placeholder="Co zmieniło się względem poprzedniej wersji..."></textarea>
+        </div>
+
+        <div class="form-row" style="margin-top:4px">
+          <button id="save-desc-btn" class="btn-primary">Save Descriptor</button>
           <button id="cancel-desc-btn" class="btn-outline">Cancel</button>
         </div>
-        <div id="desc-status"></div>
+        <div id="desc-status" style="margin-top:8px;font-size:0.85rem"></div>
       </div>
     </div>
 

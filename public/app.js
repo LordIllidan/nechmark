@@ -411,10 +411,78 @@ function renderDescriptors() {
   };
 }
 
+function getChecked(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map((el) => el.value);
+}
+
+function buildDescriptorFromForm() {
+  const id = document.getElementById("df-id").value.trim();
+  const label = document.getElementById("df-label").value.trim();
+  const provider = document.getElementById("df-provider").value;
+  const modelName = document.getElementById("df-model-name").value.trim();
+  const tempRaw = document.getElementById("df-temperature").value.trim();
+  const thinking = document.getElementById("df-thinking").checked;
+  const isHumanVal = document.getElementById("df-is-human").value;
+  const promptVersion = document.getElementById("df-prompt-version").value.trim();
+  const language = document.getElementById("df-language").value;
+  const techniques = getChecked("df-techniques");
+  const fewShot = parseInt(document.getElementById("df-fewshot").value || "0");
+  const refinements = parseInt(document.getElementById("df-refinements").value || "0");
+  const skills = getChecked("df-skills");
+  const tools = getChecked("df-tools");
+  const notes = document.getElementById("df-notes").value.trim();
+
+  const errors = [];
+  if (!id) errors.push("ID is required");
+  if (!modelName) errors.push("Model name is required");
+  if (!promptVersion) errors.push("Prompt version is required");
+
+  if (errors.length) return { errors };
+
+  const descriptor = {
+    id,
+    ...(label && { label }),
+    model: {
+      provider,
+      name: modelName,
+      ...(tempRaw && { temperature: parseFloat(tempRaw) }),
+      ...(thinking && { thinking: true }),
+    },
+    prompt: {
+      version: promptVersion || "v1",
+      technique: techniques.length ? techniques : ["zero-shot"],
+      language,
+      ...(fewShot > 0 && { fewShotCount: fewShot }),
+      ...(refinements > 0 && { maxRefinementRounds: refinements }),
+    },
+    skills,
+    tools,
+    ...(isHumanVal && { isHuman: true, humanExperience: isHumanVal }),
+    ...(notes && { notes }),
+  };
+
+  return { descriptor };
+}
+
+function resetDescriptorForm() {
+  ["df-id","df-label","df-model-name","df-temperature","df-prompt-version","df-notes","df-fewshot","df-refinements"]
+    .forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  document.getElementById("df-thinking").checked = false;
+  document.getElementById("df-provider").value = "anthropic";
+  document.getElementById("df-language").value = "pl";
+  document.getElementById("df-is-human").value = "";
+  ["df-techniques","df-skills","df-tools"].forEach((id) => {
+    document.querySelectorAll(`#${id} input[type=checkbox]`).forEach((el) => { el.checked = false; });
+  });
+  document.getElementById("desc-status").textContent = "";
+}
+
 async function saveDescriptor() {
-  const raw = document.getElementById("desc-json-input").value.trim();
-  let descriptor;
-  try { descriptor = JSON.parse(raw); } catch { document.getElementById("desc-status").textContent = "Invalid JSON"; return; }
+  const { descriptor, errors } = buildDescriptorFromForm();
+  if (errors) {
+    document.getElementById("desc-status").innerHTML = `<span style="color:var(--red)">${errors.join("<br>")}</span>`;
+    return;
+  }
 
   const res = await fetch(`${API}/descriptors`, {
     method: "POST",
@@ -424,12 +492,13 @@ async function saveDescriptor() {
 
   if (res.ok) {
     document.getElementById("desc-form").classList.add("hidden");
-    document.getElementById("desc-json-input").value = "";
+    resetDescriptorForm();
     await loadDescriptors();
     renderDescriptors();
   } else {
     const err = await res.json();
-    document.getElementById("desc-status").textContent = `Error: ${err.error}`;
+    const fieldErrors = err.fields ? `<br><small>${err.fields.join("<br>")}</small>` : "";
+    document.getElementById("desc-status").innerHTML = `<span style="color:var(--red)">${err.error}${fieldErrors}</span>`;
   }
 }
 
