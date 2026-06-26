@@ -7,6 +7,7 @@ import { BAOutput } from "../../types";
 import { AgentDescriptor } from "../../agent-descriptor";
 import { computeHardMetrics } from "../../metrics/hard-metrics";
 import { computeSkillMetrics } from "../../metrics/skill-metrics";
+import { TokenUsage } from "../../domain/runs/TokenUsage";
 
 export interface UploadRunInput {
   experimentId: string;
@@ -15,6 +16,8 @@ export interface UploadRunInput {
   caseName?: string;
   descriptorId?: string;
   descriptor?: AgentDescriptor;
+  tokenUsage?: TokenUsage;
+  notes?: string;
 }
 
 export interface UploadRunResult {
@@ -67,6 +70,8 @@ export class UploadRunUseCase {
       judge_result_json: null,
       overall_score: hardMetrics.summary.overallScore,
       judge_score: null,
+      token_usage_json: input.tokenUsage ? JSON.stringify(input.tokenUsage) : null,
+      notes: input.notes ?? null,
     };
 
     this.runRepo.insert(row);

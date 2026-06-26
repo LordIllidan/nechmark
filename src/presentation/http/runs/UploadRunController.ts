@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { UploadRunUseCase } from "../../../application/runs/UploadRunUseCase";
 import { BAOutput } from "../../../types";
 import { AgentDescriptor } from "../../../agent-descriptor";
+import { TokenUsage } from "../../../domain/runs/TokenUsage";
 
 export class UploadRunController {
   constructor(private readonly uploadRun: UploadRunUseCase) {}
@@ -13,6 +14,8 @@ export class UploadRunController {
       caseName?: string;
       descriptorId?: string;
       descriptor?: AgentDescriptor;
+      tokenUsage?: TokenUsage;
+      notes?: string;
     };
 
     try {
@@ -23,6 +26,8 @@ export class UploadRunController {
         caseName: body.caseName,
         descriptorId: body.descriptorId,
         descriptor: body.descriptor,
+        tokenUsage: body.tokenUsage,
+        notes: body.notes,
       });
 
       res.status(201).json({

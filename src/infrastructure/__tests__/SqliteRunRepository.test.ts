@@ -8,7 +8,7 @@ const makeRun = (id: string, overallScore = 7, caseId = "c1", descriptorId?: str
   case_id: caseId, case_name: "Login", input_format: "free_text", input_content: "x",
   descriptor_id: descriptorId ?? null, descriptor_json: null, output_json: "{}",
   hard_metrics_json: "{}", skill_metrics_json: null, judge_result_json: null,
-  overall_score: overallScore, judge_score: null,
+  overall_score: overallScore, judge_score: null, token_usage_json: null, notes: null,
 });
 
 describe("SqliteRunRepository", () => {

@@ -16,7 +16,7 @@ const makeRun = (overallScore: number, acScore: number): RunRow => ({
   descriptor_id: null, descriptor_json: null, output_json: "{}",
   hard_metrics_json: JSON.stringify({ acMeasurability: { score: acScore } }),
   skill_metrics_json: null, judge_result_json: null,
-  overall_score: overallScore, judge_score: null,
+  overall_score: overallScore, judge_score: null, token_usage_json: null, notes: null,
 });
 
 const makeGate = (threshold: number, action: "warn" | "fail" = "fail"): QualityGate => ({

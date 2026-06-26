@@ -16,6 +16,8 @@ export interface RunRow {
   judge_result_json: string | null;
   overall_score: number;
   judge_score: number | null;
+  token_usage_json: string | null;
+  notes: string | null;
 }
 
 export interface IRunRepository {

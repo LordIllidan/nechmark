@@ -10,14 +10,16 @@ export class SqliteRunRepository implements IRunRepository {
       INSERT OR REPLACE INTO runs
         (id,experiment_id,run_at,case_id,case_name,input_format,input_content,
          descriptor_id,descriptor_json,output_json,hard_metrics_json,
-         skill_metrics_json,judge_result_json,overall_score,judge_score)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         skill_metrics_json,judge_result_json,overall_score,judge_score,
+         token_usage_json,notes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       row.id, row.experiment_id, row.run_at, row.case_id, row.case_name,
       row.input_format, row.input_content,
       row.descriptor_id, row.descriptor_json, row.output_json,
       row.hard_metrics_json, row.skill_metrics_json, row.judge_result_json,
       row.overall_score, row.judge_score,
+      row.token_usage_json ?? null, row.notes ?? null,
     );
   }
 
