@@ -1,10 +1,11 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { StoryIndependenceMetric, DuplicateAcMetric } from "./metric-types.js";
 import { tokenize, buildTfVector, cosineSimilarity } from "./text-utils.js";
 
 export function measureStoryIndependence(output: BAOutput): StoryIndependenceMetric {
   const stories = output.userStories;
-  if (stories.length < 2) return { value: 1, score: 10, label: "Story Independence", avgSimilarity: 0, maxSimilarity: 0, highOverlapPairs: [] };
+  if (stories.length < 2)
+    return { value: 1, score: 10, label: "Story Independence", avgSimilarity: 0, maxSimilarity: 0, highOverlapPairs: [] };
   const vectors = stories.map((s) =>
     buildTfVector(tokenize([s.title, s.asA, s.iWant, s.soThat, ...s.acceptanceCriteria.map((ac) => ac.description)].join(" ")))
   );

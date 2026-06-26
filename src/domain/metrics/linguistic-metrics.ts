@@ -1,41 +1,7 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { VagueWordMetric, PassiveVoiceMetric, ModalVerbMetric, TerminologyConsistencyMetric, SubordinateClauseMetric } from "./metric-types.js";
+import { VAGUE_WORDS, PASSIVE_PATTERN, MANDATORY_MODALS, RECOMMENDED_MODALS, OPTIONAL_MODALS, SUBORDINATE_CONJUNCTIONS, SYNONYM_GROUPS } from "./metric-constants.js";
 import { tokenizeAll, splitSentences, allOutputText, allAcText } from "./text-utils.js";
-
-const VAGUE_WORDS = new Set([
-  "easy","fast","quickly","slow","simple","friendly","smooth","reliable",
-  "robust","flexible","scalable","efficient","effective","seamlessly",
-  "intuitively","user-friendly","appropriate","adequate","reasonable",
-  "sufficient","good","bad","nice","better","best","various","several",
-  "some","many","few","large","small","high","low","quickly","easily",
-  "regularly","often","sometimes","usually","typically","generally",
-  "approximately","about","around","roughly","nearly",
-]);
-
-const PASSIVE_PATTERN = /\b(is|are|was|were|been|be|being)\s+\w+(?:ed|en)\b/i;
-
-const MANDATORY_MODALS = new Set(["must","shall"]);
-const RECOMMENDED_MODALS = new Set(["should"]);
-const OPTIONAL_MODALS = new Set(["may","can","could","might"]);
-
-const SUBORDINATE_CONJUNCTIONS = [
-  "when","if","because","although","since","while","unless","after","before",
-  "until","as","though","even if","even though","so that","in order that",
-  "provided that","assuming that","given that","in case","whenever","wherever",
-];
-
-const SYNONYM_GROUPS: Array<{ canonical: string; variants: string[] }> = [
-  { canonical: "user", variants: ["customer","client","actor","person","member","account holder"] },
-  { canonical: "system", variants: ["application","app","platform","service","backend","api"] },
-  { canonical: "display", variants: ["show","render","present","view","visualize"] },
-  { canonical: "error", variants: ["failure","fault","exception","issue","problem","bug"] },
-  { canonical: "create", variants: ["add","generate","make","produce","build","set up"] },
-  { canonical: "delete", variants: ["remove","destroy","erase","clear","purge"] },
-  { canonical: "update", variants: ["edit","modify","change","alter","revise"] },
-  { canonical: "validate", variants: ["verify","check","confirm","authenticate","authorize"] },
-  { canonical: "notification", variants: ["alert","message","email","reminder","notice"] },
-  { canonical: "login", variants: ["sign in","log in","authenticate","access"] },
-];
 
 export function measureVagueWordRatio(output: BAOutput): VagueWordMetric {
   const text = allOutputText(output);
@@ -76,10 +42,9 @@ export function measureTerminologyConsistency(output: BAOutput): TerminologyCons
   const result: TerminologyConsistencyMetric["synonymGroups"] = [];
   let inconsistentGroups = 0;
   for (const group of SYNONYM_GROUPS) {
-    const variantCounts = group.variants.map((v) => ({
-      variant: v,
-      count: (text.match(new RegExp(`\\b${v.replace(/\s+/g, "\\s+")}\\b`, "gi")) || []).length,
-    })).filter((v) => v.count > 0);
+    const variantCounts = group.variants
+      .map((v) => ({ variant: v, count: (text.match(new RegExp(`\\b${v.replace(/\s+/g, "\\s+")}\\b`, "gi")) || []).length }))
+      .filter((v) => v.count > 0);
     if (variantCounts.length > 0) {
       result.push({ canonical: group.canonical, variants: variantCounts.map((v) => v.variant), count: variantCounts.reduce((s, v) => s + v.count, 0) });
       inconsistentGroups++;

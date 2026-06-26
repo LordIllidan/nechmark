@@ -1,4 +1,4 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { InputCoverageMetric, MetricScore } from "./metric-types.js";
 import { tokenize, allOutputText } from "./text-utils.js";
 
@@ -18,5 +18,5 @@ export function measureInputPrecision(output: BAOutput): MetricScore {
   if (outputTokens.length === 0) return { value: 1, score: 10, label: "Input Precision (anti-hallucination)" };
   const grounded = outputTokens.filter((w) => inputTokens.has(w));
   const value = grounded.length / outputTokens.length;
-  return { value: Math.round(value * 100) / 100, score: Math.round(value * 10 * 10) / 10, label: "Input Precision (anti-hallucination)" };
+  return { value: Math.round(value * 100) / 100, score: Math.round(value * 100) / 10, label: "Input Precision (anti-hallucination)" };
 }

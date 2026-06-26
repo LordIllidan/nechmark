@@ -1,28 +1,7 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { FormatComplianceMetric, AcMeasurabilityMetric, GherkinCoverageMetric, AtomicityMetric, WellFormednessMetric } from "./metric-types.js";
+import { MEASURABLE_PATTERNS, GHERKIN_PATTERNS, MULTI_ACTION_PATTERN } from "./metric-constants.js";
 import { tokenize, buildTfVector, cosineSimilarity } from "./text-utils.js";
-
-const MEASURABLE_PATTERNS = [
-  /\d+\s*(ms|sec|s|min|hour|h|day|%|kb|mb|gb|px|rpm|rps)/i,
-  /[<>≤≥]=?\s*\d+/,
-  /\d+\s*(attempt|try|tries|request|item|result|character|char)/i,
-  /within\s+\d+/i,
-  /at least\s+\d+/i,
-  /no more than\s+\d+/i,
-  /maximum\s+\d+/i,
-  /minimum\s+\d+/i,
-  /exactly\s+\d+/i,
-  /\d+\s*(concurrent|simultaneous)/i,
-];
-
-const GHERKIN_PATTERNS = [
-  /\bgiven\b.*\bwhen\b.*\bthen\b/is,
-  /^given\b/im,
-  /^when\b/im,
-  /^then\b/im,
-];
-
-const MULTI_ACTION_PATTERN = /\b(and also|as well as|in addition to|and then|also)\b/i;
 
 export function measureFormatCompliance(output: BAOutput): FormatComplianceMetric {
   const missingFields: string[] = [];
@@ -69,7 +48,7 @@ export function measureAtomicity(output: BAOutput): AtomicityMetric {
   }
   const total = output.userStories.length;
   const value = total > 0 ? 1 - nonAtomic.length / total : 1;
-  return { value, score: Math.round(value * 10 * 10) / 10, label: "Atomicity (QUS)", nonAtomicStories: nonAtomic, totalStories: total };
+  return { value, score: Math.round(value * 100) / 10, label: "Atomicity (QUS)", nonAtomicStories: nonAtomic, totalStories: total };
 }
 
 export function measureWellFormedness(output: BAOutput): WellFormednessMetric {
@@ -89,5 +68,5 @@ export function measureWellFormedness(output: BAOutput): WellFormednessMetric {
   }
   const total = output.userStories.length;
   const value = total > 0 ? wellFormed / total : 1;
-  return { value, score: Math.round(value * 10 * 10) / 10, label: "Well-Formedness (QUS)", wellFormedCount: wellFormed, totalStories: total, violations };
+  return { value, score: Math.round(value * 100) / 10, label: "Well-Formedness (QUS)", wellFormedCount: wellFormed, totalStories: total, violations };
 }

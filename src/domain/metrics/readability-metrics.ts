@@ -1,4 +1,4 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { ReadabilityMetric, GunningFogMetric, SmogIndexMetric, TypeTokenMetric } from "./metric-types.js";
 import { splitSentences, countSyllables, tokenizeAll, allAcText, allOutputText } from "./text-utils.js";
 

@@ -21,7 +21,8 @@ export function makeTestConnection(): DatabaseConnection {
       input_format TEXT NOT NULL, input_content TEXT NOT NULL,
       descriptor_id TEXT, descriptor_json TEXT, output_json TEXT NOT NULL,
       hard_metrics_json TEXT NOT NULL, skill_metrics_json TEXT,
-      judge_result_json TEXT, overall_score REAL NOT NULL, judge_score REAL
+      judge_result_json TEXT, overall_score REAL NOT NULL, judge_score REAL,
+      token_usage_json TEXT, notes TEXT
     );
     CREATE TABLE IF NOT EXISTS quality_gates (
       id TEXT PRIMARY KEY, experiment_id TEXT NOT NULL REFERENCES experiments(id) ON DELETE CASCADE,

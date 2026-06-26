@@ -5,7 +5,7 @@ import { IExperimentRepository } from "../../domain/experiments/IExperimentRepos
 import { DescriptorValidator } from "../../domain/descriptors/DescriptorValidator";
 import { BAOutput } from "../../types";
 import { AgentDescriptor } from "../../agent-descriptor";
-import { computeHardMetrics } from "../../metrics/hard-metrics";
+import { computeHardMetrics } from "../../domain/metrics/hard-metrics";
 import { computeSkillMetrics } from "../../metrics/skill-metrics";
 import { TokenUsage } from "../../domain/runs/TokenUsage";
 

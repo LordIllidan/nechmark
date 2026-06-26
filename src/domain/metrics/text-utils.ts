@@ -1,15 +1,5 @@
-import { BAOutput } from "../types.js";
-
-export const STOP_WORDS = new Set([
-  "a","an","the","and","or","but","in","on","at","to","for","of","with","by",
-  "from","is","are","was","were","be","been","being","have","has","had","do",
-  "does","did","will","would","could","should","may","might","must","shall",
-  "can","need","that","this","it","its","they","them","their","we","our",
-  "as","so","if","then","when","where","which","who","what","how","all","any",
-  "both","each","few","more","most","other","some","such","no","not","only",
-  "own","same","than","too","very","just","user","system","able","allow",
-  "display","show",
-]);
+import { BAOutput } from "../../types.js";
+import { STOP_WORDS } from "./metric-constants.js";
 
 export function tokenize(text: string): string[] {
   return text

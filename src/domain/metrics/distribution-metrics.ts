@@ -1,4 +1,4 @@
-import { BAOutput } from "../types.js";
+import { BAOutput } from "../../types.js";
 import { SizeDistributionMetric, EdgeCaseRatioMetric, PersonaDiversityMetric } from "./metric-types.js";
 
 export function measureSizeDistribution(output: BAOutput): SizeDistributionMetric {
