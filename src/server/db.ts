@@ -55,6 +55,17 @@ function migrate(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_runs_experiment ON runs(experiment_id);
     CREATE INDEX IF NOT EXISTS idx_runs_descriptor ON runs(descriptor_id);
     CREATE INDEX IF NOT EXISTS idx_runs_case       ON runs(case_id);
+
+    CREATE TABLE IF NOT EXISTS quality_gates (
+      id            TEXT PRIMARY KEY,
+      experiment_id TEXT NOT NULL REFERENCES experiments(id) ON DELETE CASCADE,
+      name          TEXT NOT NULL,
+      rules_json    TEXT NOT NULL,
+      action        TEXT NOT NULL DEFAULT 'warn',
+      created_at    TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_gates_experiment ON quality_gates(experiment_id);
   `);
 }
 

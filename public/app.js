@@ -100,6 +100,9 @@ async function loadDashboard(experimentId) {
   renderRadarChart(state.metrics);
   renderBarChart(state.metrics);
   renderMetricsTable(state.metrics);
+  renderCompareSelect(state.metrics);
+  setupGateForm();
+  loadGates();
 }
 
 function renderStats(stats) {
@@ -509,38 +512,258 @@ async function setupDescriptors() {
 }
 
 // ---------------------------------------------------------------------------
-// All Runs
+// All Runs (with filters)
 // ---------------------------------------------------------------------------
 
+const runsFilter = { descriptorId: "", caseId: "", minScore: "", maxScore: "" };
+
 async function loadAllRuns() {
-  const res = await fetch(`${API}/runs`);
-  const runs = await res.json();
+  const params = new URLSearchParams();
+  if (runsFilter.descriptorId) params.set("descriptorId", runsFilter.descriptorId);
+  if (runsFilter.caseId)       params.set("caseId",       runsFilter.caseId);
+  if (runsFilter.minScore)     params.set("minScore",      runsFilter.minScore);
+  if (runsFilter.maxScore)     params.set("maxScore",      runsFilter.maxScore);
+  const qs = params.toString();
+  const res = await fetch(`${API}/runs${qs ? "?" + qs : ""}`);
   const wrap = document.getElementById("runs-table-wrap");
 
+  const filterBar = `
+    <div class="filter-bar">
+      <input type="text" class="filter-input" id="f-descriptor" placeholder="Descriptor ID" value="${runsFilter.descriptorId}">
+      <input type="text" class="filter-input" id="f-case" placeholder="Case ID" value="${runsFilter.caseId}">
+      <input type="number" class="filter-input" id="f-min" placeholder="Min score" value="${runsFilter.minScore}" style="width:100px">
+      <input type="number" class="filter-input" id="f-max" placeholder="Max score" value="${runsFilter.maxScore}" style="width:100px">
+      <button class="btn-outline btn-sm" id="f-apply">Filter</button>
+      <button class="btn-outline btn-sm" id="f-clear">Clear</button>
+      <span class="filter-count">${runs.length} run${runs.length !== 1 ? "s" : ""}</span>
+    </div>`;
+
   if (runs.length === 0) {
-    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No runs yet.</p></div>`;
-    return;
+    wrap.innerHTML = filterBar + `<div class="empty-state"><div class="empty-icon">📋</div><p>No runs match filter.</p></div>`;
+  } else {
+    wrap.innerHTML = filterBar + `<table class="runs-table">
+      <thead><tr><th>Run At</th><th>Experiment</th><th>Case</th><th>Descriptor</th><th>Hard Score</th><th>Judge Score</th><th></th></tr></thead>
+      <tbody>${runs.map((r) => `
+        <tr>
+          <td class="mono">${r.runAt.slice(0,19).replace("T"," ")}</td>
+          <td>${r.experimentId ?? "—"}</td>
+          <td>${r.caseName}</td>
+          <td>${r.descriptor?.label ?? r.descriptorId ?? "—"}</td>
+          <td><span class="score-${scoreClass(r.overall_score)}">${r.overall_score?.toFixed(1) ?? "—"}</span></td>
+          <td>${r.judge_score ? r.judge_score.toFixed(1) : "—"}</td>
+          <td><button class="btn-icon" title="Delete" data-id="${r.id}">🗑</button></td>
+        </tr>
+      `).join("")}</tbody>
+    </table>`;
   }
 
-  wrap.innerHTML = `<table class="runs-table">
-    <thead><tr><th>Run At</th><th>Experiment</th><th>Case</th><th>Descriptor</th><th>Hard Score</th><th>Judge Score</th><th></th></tr></thead>
-    <tbody>${runs.map((r) => `
-      <tr>
-        <td class="mono">${r.runAt.slice(0,19).replace("T"," ")}</td>
-        <td>${r.experimentId ?? "—"}</td>
-        <td>${r.caseName}</td>
-        <td>${r.descriptor?.label ?? r.descriptorId ?? "—"}</td>
-        <td><span class="score-${scoreClass(r.overall_score)}">${r.overall_score?.toFixed(1) ?? "—"}</span></td>
-        <td>${r.judge_score ? r.judge_score.toFixed(1) : "—"}</td>
-        <td><button class="btn-icon" title="Delete" data-id="${r.id}">🗑</button></td>
-      </tr>
-    `).join("")}</tbody>
-  </table>`;
+  document.getElementById("f-apply").onclick = () => {
+    runsFilter.descriptorId = document.getElementById("f-descriptor").value.trim();
+    runsFilter.caseId       = document.getElementById("f-case").value.trim();
+    runsFilter.minScore     = document.getElementById("f-min").value.trim();
+    runsFilter.maxScore     = document.getElementById("f-max").value.trim();
+    loadAllRuns();
+  };
+  document.getElementById("f-clear").onclick = () => {
+    runsFilter.descriptorId = runsFilter.caseId = runsFilter.minScore = runsFilter.maxScore = "";
+    loadAllRuns();
+  };
 
-  wrap.querySelectorAll(".btn-icon").forEach((btn) => {
+  wrap.querySelectorAll(".btn-icon[data-id]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       await fetch(`${API}/runs/${btn.dataset.id}`, { method: "DELETE" });
       loadAllRuns();
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Compare Descriptors (A/B view)
+// ---------------------------------------------------------------------------
+
+function renderCompareSelect(metrics) {
+  const wrap = document.getElementById("compare-select");
+  if (!wrap || !metrics.length) return;
+  wrap.innerHTML = metrics.map((m) => `
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer">
+      <input type="checkbox" class="compare-cb" value="${m.descriptorId}" checked>
+      <span>${m.label}</span>
+    </label>
+  `).join("");
+
+  document.getElementById("compare-btn").onclick = async () => {
+    const ids = [...document.querySelectorAll(".compare-cb:checked")].map((el) => el.value);
+    if (ids.length < 2) {
+      document.getElementById("compare-wrap").innerHTML = `<p style="color:var(--red);font-size:0.85rem">Select at least 2 descriptors.</p>`;
+      return;
+    }
+    const qs = ids.map((id) => `descriptorIds=${encodeURIComponent(id)}`).join("&");
+    const res = await fetch(`${API}/experiments/${state.activeExperimentId}/compare?${qs}`);
+    const profiles = await res.json();
+    renderCompareTable(profiles);
+  };
+}
+
+function renderCompareTable(profiles) {
+  const wrap = document.getElementById("compare-wrap");
+  if (!profiles.length) { wrap.innerHTML = ""; return; }
+
+  const METRICS = [
+    "formatCompliance","wellFormedness","atomicity","acMeasurability","gherkinCoverage",
+    "edgeCaseRatio","vagueWordRatio","inputCoverage","terminologyConsistency","readability",
+  ];
+
+  const best = (metric) => {
+    const scores = profiles.map((p) => p.metrics[metric] ?? 0);
+    return Math.max(...scores);
+  };
+
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;margin-top:8px">
+    <table class="metrics-table">
+      <thead><tr>
+        <th>Metric</th>
+        ${profiles.map((p) => `<th>${p.label}</th>`).join("")}
+      </tr></thead>
+      <tbody>
+        <tr class="overall-row">
+          <td>Overall Score</td>
+          ${profiles.map((p) => {
+            const isTop = p.avgOverallScore === Math.max(...profiles.map((x) => x.avgOverallScore));
+            return `<td><span class="score-pill score-${scoreClass(p.avgOverallScore)}">${p.avgOverallScore.toFixed(1)}${isTop ? " ★" : ""}</span></td>`;
+          }).join("")}
+        </tr>
+        ${METRICS.map((m) => `
+          <tr>
+            <td>${m}</td>
+            ${profiles.map((p) => {
+              const v = p.metrics[m] ?? 0;
+              const isTop = v === best(m) && best(m) > 0;
+              return `<td><span class="score-pill score-${scoreClass(v)}">${v.toFixed(1)}${isTop ? " ★" : ""}</span></td>`;
+            }).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Quality Gates
+// ---------------------------------------------------------------------------
+
+const GATE_METRICS = [
+  "formatCompliance","wellFormedness","atomicity","acMeasurability","gherkinCoverage",
+  "edgeCaseRatio","duplicateAc","vagueWordRatio","inputCoverage","terminologyConsistency",
+  "readability","gunningFog","smogIndex","typeTokenRatio","storyIndependence",
+];
+
+let gateRules = [];
+
+async function loadGates() {
+  if (!state.activeExperimentId) return;
+  const res = await fetch(`${API}/experiments/${state.activeExperimentId}/gates`);
+  const gates = await res.json();
+  renderGatesList(gates);
+}
+
+function renderGatesList(gates) {
+  const wrap = document.getElementById("gates-list");
+  if (!wrap) return;
+  if (!gates.length) {
+    wrap.innerHTML = `<p style="color:var(--muted);font-size:0.85rem">No quality gates defined.</p>`;
+    return;
+  }
+  wrap.innerHTML = gates.map((g) => `
+    <div class="gate-card">
+      <div class="gate-header">
+        <span class="gate-name">${g.name}</span>
+        <span class="gate-action gate-action-${g.action}">${g.action.toUpperCase()}</span>
+        <button class="btn-icon" data-gate-id="${g.id}" title="Delete">🗑</button>
+      </div>
+      <div class="gate-rules">
+        ${g.rules.map((r) => `<span class="tag">${r.metric} ${r.operator} ${r.threshold}</span>`).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll(".btn-icon[data-gate-id]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await fetch(`${API}/gates/${btn.dataset.gateId}`, { method: "DELETE" });
+      loadGates();
+    });
+  });
+}
+
+function setupGateForm() {
+  const btn = document.getElementById("add-gate-btn");
+  if (!btn) return;
+
+  btn.onclick = () => {
+    gateRules = [];
+    renderGateRules();
+    document.getElementById("gf-name").value = "";
+    document.getElementById("gf-action").value = "warn";
+    document.getElementById("gate-status").textContent = "";
+    document.getElementById("gate-form").classList.remove("hidden");
+  };
+
+  document.getElementById("gf-cancel").onclick = () => {
+    document.getElementById("gate-form").classList.add("hidden");
+  };
+
+  document.getElementById("gf-add-rule").onclick = () => {
+    gateRules.push({ metric: GATE_METRICS[0], operator: ">=", threshold: 6 });
+    renderGateRules();
+  };
+
+  document.getElementById("gf-save").onclick = async () => {
+    const name = document.getElementById("gf-name").value.trim();
+    const action = document.getElementById("gf-action").value;
+    if (!name) { document.getElementById("gate-status").textContent = "Name required."; return; }
+    if (!gateRules.length) { document.getElementById("gate-status").textContent = "Add at least one rule."; return; }
+
+    const res = await fetch(`${API}/experiments/${state.activeExperimentId}/gates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, action, rules: gateRules }),
+    });
+    if (res.ok) {
+      document.getElementById("gate-form").classList.add("hidden");
+      loadGates();
+    } else {
+      const err = await res.json();
+      document.getElementById("gate-status").textContent = err.error;
+    }
+  };
+}
+
+function renderGateRules() {
+  const wrap = document.getElementById("gf-rules");
+  wrap.innerHTML = gateRules.map((rule, i) => `
+    <div class="gate-rule-row">
+      <select data-i="${i}" data-field="metric">
+        ${GATE_METRICS.map((m) => `<option value="${m}" ${rule.metric === m ? "selected" : ""}>${m}</option>`).join("")}
+      </select>
+      <select data-i="${i}" data-field="operator" style="width:70px">
+        ${[">=","<=",">","<","=="].map((op) => `<option ${rule.operator === op ? "selected" : ""}>${op}</option>`).join("")}
+      </select>
+      <input type="number" data-i="${i}" data-field="threshold" value="${rule.threshold}" min="0" max="10" step="0.5" style="width:80px">
+      <button class="btn-icon" data-remove="${i}">✕</button>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("select[data-field],input[data-field]").forEach((el) => {
+    el.addEventListener("change", () => {
+      const i = parseInt(el.dataset.i);
+      const field = el.dataset.field;
+      gateRules[i][field] = field === "threshold" ? parseFloat(el.value) : el.value;
+    });
+  });
+  wrap.querySelectorAll("[data-remove]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      gateRules.splice(parseInt(btn.dataset.remove), 1);
+      renderGateRules();
     });
   });
 }

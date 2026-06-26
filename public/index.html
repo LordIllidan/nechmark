@@ -59,6 +59,36 @@
 
         <div class="section-title">Metric Details</div>
         <div id="metrics-table-wrap"></div>
+
+        <div class="section-title" style="margin-top:28px">
+          Compare Descriptors (A/B)
+          <button class="btn-outline btn-sm" id="compare-btn" style="margin-left:12px">Run Compare</button>
+        </div>
+        <div id="compare-select" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="compare-wrap"></div>
+
+        <div class="section-title" style="margin-top:28px">
+          Quality Gates
+          <button class="btn-outline btn-sm" id="add-gate-btn" style="margin-left:12px">+ Add Gate</button>
+        </div>
+        <div id="gates-list"></div>
+        <div id="gate-form" class="hidden" style="max-width:600px;margin-top:12px">
+          <div class="form-row-2" style="margin-bottom:8px">
+            <div class="form-group"><label>Gate name</label><input type="text" id="gf-name" placeholder="e.g. AC Quality Gate"></div>
+            <div class="form-group"><label>Action</label>
+              <select id="gf-action"><option value="warn">Warn</option><option value="fail">Fail</option></select>
+            </div>
+          </div>
+          <div id="gf-rules"></div>
+          <div class="form-row" style="margin-top:8px">
+            <button class="btn-outline btn-sm" id="gf-add-rule">+ Rule</button>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <button class="btn-primary btn-sm" id="gf-save">Save Gate</button>
+            <button class="btn-outline btn-sm" id="gf-cancel">Cancel</button>
+          </div>
+          <div id="gate-status" style="margin-top:8px;font-size:0.85rem"></div>
+        </div>
       </div>
     </div>
 
