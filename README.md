@@ -52,6 +52,22 @@ npx ts-node src/compare-cli.ts \
 
 ---
 
+## Screenshots
+
+### Dashboard — score comparison across agent versions
+![Dashboard](Dashbaord.png)
+
+### Upload Results & Descriptors menu
+![Menu](Menu.png)
+
+### New Descriptor form
+![New Descriptor](new%20descriptor.png)
+
+### All Runs table
+![All Runs](allRuns.png)
+
+---
+
 ## Hard metrics — complete reference
 
 All 20 metrics are deterministic (no LLM, no randomness, no network). Each returns a **score 0–10** and a raw value. Scores are combined into a weighted overall score.
